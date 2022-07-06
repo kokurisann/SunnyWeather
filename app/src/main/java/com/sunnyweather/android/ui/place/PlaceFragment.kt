@@ -1,6 +1,7 @@
 package com.sunnyweather.android.ui.place
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,13 +12,14 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sunnyweather.android.R
+import com.sunnyweather.android.ui.weather.WeatherActivity
 import kotlinx.android.synthetic.main.fragment_place.*
 
 //对Place相关Fragment进行实现，所以要继承Fragment()类
 class PlaceFragment : Fragment() {
 
     //使用懒加载技术创建ViewModel对象
-    private val viewModel by lazy { ViewModelProvider(this).get(PlaceViewModel::class.java) }
+    val viewModel by lazy { ViewModelProvider(this).get(PlaceViewModel::class.java) }
 
     //延迟加载适配器
     private lateinit var adapter: PlaceAdapter
@@ -32,15 +34,28 @@ class PlaceFragment : Fragment() {
     }
 
     //加载将UI需要的数据，以及创建对数据的跟踪逻辑
-    //虽然onActivityCreated()方法是过时的方法，但是现在并没有很好的解决方案
+    //onActivityCreated()方法是过时的方法，需要更改为onViewCreated()方法
     @SuppressLint("NotifyDataSetChanged")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        //判断是否已经有被保存的Place对象，如果有就读取该对象
+        if (viewModel.isPlaceSaved()) {
+            val place = viewModel.getSavedPlace()
+            val intent = Intent(context, WeatherActivity::class.java).apply {
+                putExtra("location_lng", place.location.lng)
+                putExtra("location_lat", place.location.lat)
+                putExtra("place_name", place.name)
+            }
+            startActivity(intent)
+            activity?.finish()
+            return
+        }
+
         //设置RecyclerView的layoutManager与adapter
         val layoutManager = LinearLayoutManager(activity)
         recyclerView.layoutManager = layoutManager
-        adapter = PlaceAdapter(viewModel.placeList)
+        adapter = PlaceAdapter(this, viewModel.placeList)
         recyclerView.adapter = adapter
 
         //监听搜索框内容的变化情况

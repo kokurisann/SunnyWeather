@@ -13,8 +13,17 @@ object SunnyWeatherNetwork {
     //创建一个PlaceService接口的动态管理对象
     private val placeService = ServiceCreator.create<PlaceService>()
 
+    //创建一个WeatherService接口的动态管理对象
+    private val weatherService = ServiceCreator.create<WeatherService>()
+
     //发起搜索城市数据的请求
     suspend fun searchPlaces(query: String) = placeService.searchPlaces(query).await()
+
+    //发起获取实时天气数据的请求
+    suspend fun getRealtimeWeather(lng: String, lat: String) = weatherService.getRealtimeWeather(lng, lat).await()
+
+    //发起获取每日天气数据的请求
+    suspend fun getDailyWeather(lng: String, lat: String) = weatherService.getDailyWeather(lng, lat).await()
 
     //使用协程简化Retrofit回调函数的写法
     private suspend fun <T> Call<T>.await(): T {
